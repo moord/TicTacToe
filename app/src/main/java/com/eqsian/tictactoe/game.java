@@ -1,7 +1,6 @@
 package com.eqsian.tictactoe;
 
 import android.annotation.SuppressLint;
-import android.app.FragmentManager;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Handler;
@@ -11,22 +10,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.GridView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static android.R.attr.fragment;
-import static android.R.color.black;
-import static android.icu.lang.UCharacter.GraphemeClusterBreak.V;
-import static android.os.Build.VERSION_CODES.O;
-import static android.view.View.X;
 
 
 public class game extends AppCompatActivity implements View.OnClickListener {
@@ -50,7 +40,7 @@ public class game extends AppCompatActivity implements View.OnClickListener {
         setContentView(R.layout.activity_game);
 
         block = 0;
-        txt_tmp = (TextView) findViewById(R.id.textView8);
+        txt_tmp = (TextView) findViewById(R.id.txtScore);
 
         btnReset = (Button) findViewById(R.id.btnReset);
 
