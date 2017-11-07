@@ -208,14 +208,6 @@ public class game extends AppCompatActivity implements View.OnClickListener {
 //        char origBoard[] = {'O',1 ,'X','X',4 ,'X', 6 ,'O','O'};
             // Проверка на конец игры
 
-            // Победа человека
-            // Победа AI
-            // Все поле занято
-
-
-            //Thread.sleep(1000);
-
-
 
             txt_tmp.setText(" ");
 
