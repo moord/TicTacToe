@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TicTacToe</string>
+    <string name="ai_move">Android is thinking</string>
+    <string name="you_lose">LOSE</string>
+    <string name="hu_move">Your turn</string>
+    <string name="you_win">WIN</string>
+    <string name="draw">DRAW</string>
+    <string name="btn_reset">New game</string>
+</resources>

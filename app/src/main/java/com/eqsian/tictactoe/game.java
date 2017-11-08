@@ -23,7 +23,8 @@ public class game extends AppCompatActivity implements View.OnClickListener {
     final int GRID_SIZE = 3;
 
     ConstraintLayout my_layout;
-    TextView txt_tmp;
+    TextView txtStatus;
+    TextView txtScore;
     char origBoard[] = {0, 1, 2, 3, 4, 5, 6, 7, 8};
 
     List<TicTacToeButton> btns = new ArrayList<>();
@@ -32,6 +33,7 @@ public class game extends AppCompatActivity implements View.OnClickListener {
 
     String win_state = "Победа";
     int block;
+    int huScore, aiScore;
     CrossLine cross;
 
     @Override
@@ -40,7 +42,12 @@ public class game extends AppCompatActivity implements View.OnClickListener {
         setContentView(R.layout.activity_game);
 
         block = 0;
-        txt_tmp = (TextView) findViewById(R.id.txtScore);
+        huScore = 0;
+        aiScore = 0;
+        txtStatus = (TextView) findViewById(R.id.txtStatus);
+        txtScore = (TextView) findViewById(R.id.txtScore);
+
+        txtScore.setText(String.valueOf(huScore)+" : "+String.valueOf(aiScore));
 
         btnReset = (Button) findViewById(R.id.btnReset);
 
@@ -173,6 +180,11 @@ public class game extends AppCompatActivity implements View.OnClickListener {
             btn.setStatus((char) 0);
         }
         cross.setStatus(0);
+
+        btnReset.setVisibility(View.GONE);
+        txtScore.setText(String.valueOf(huScore)+" : "+String.valueOf(aiScore));
+
+        block = 0; // новая игра
     }
 
     char huPlayer = 'X';
@@ -183,7 +195,7 @@ public class game extends AppCompatActivity implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-//        txt_tmp.setText( String.valueOf(v.getTag()));
+//        txtStatus.setText( String.valueOf(v.getTag()));
 
         if (((TicTacToeButton) v).getStatus() == (char) 0 && block == 0) {
             block = 1;
@@ -199,13 +211,13 @@ public class game extends AppCompatActivity implements View.OnClickListener {
             // Проверка на конец игры
 
 
-            txt_tmp.setText(" ");
+            txtStatus.setText(R.string.ai_move);
 
             Handler handler = new Handler();
             handler.postDelayed(new Runnable() {
                 public void run() {
                     //my_button.setBackgroundResource(R.drawable.defaultcard);
-//                    txt_tmp.setText("прошло 2 сек");
+//                    txtStatus.setText("прошло 2 сек");
                     if (!is_end()) {
 
 
@@ -216,11 +228,12 @@ public class game extends AppCompatActivity implements View.OnClickListener {
                         btns.get((byte) bestSpot.index).setStatus(aiPlayer);
                         origBoard[(byte) bestSpot.index] = aiPlayer;
 
-                        //txt_tmp.setText( String.valueOf(fc) + ": Best move - " + String.valueOf((byte)bestSpot.index));
+                        txtStatus.setText(R.string.hu_move);
+                        //txtStatus.setText( String.valueOf(fc) + ": Best move - " + String.valueOf((byte)bestSpot.index));
 
-                        is_end();
+                        if( !is_end() ) block = 0;;
                     }
-                    block = 0;
+
                 }
             }, 750);
 
@@ -233,20 +246,26 @@ public class game extends AppCompatActivity implements View.OnClickListener {
         int win;
         if ((win = winning(origBoard, huPlayer)) != 0) {
             rez = true;
-            win_state = "Поздравляю! Вы победили!";
+            win_state = getString(R.string.you_win);
+            huScore++;
             cross.setStatus(win);
         } else if ((win=winning(origBoard, aiPlayer))!=0) {
             rez = true;
-            win_state = "К сожалению, Вы проиграли.";
+            win_state = getString(R.string.you_lose);
+            aiScore++;
             cross.setStatus(win);
         } else if (emptyIndexies(origBoard).size() == 0) {
             rez = true;
-            win_state = "Ничья. Еще разок?";
+            win_state = getString(R.string.draw);
         }
 
         if (rez) {
-            MyDialogFragment myDialogFragment = new MyDialogFragment();
-            myDialogFragment.show(getFragmentManager(), "dialog");
+            //MyDialogFragment myDialogFragment = new MyDialogFragment();
+            //myDialogFragment.show(getFragmentManager(), "dialog");
+            txtStatus.setText("");
+            btnReset.setVisibility(View.VISIBLE);
+            txtScore.setText(win_state);
+
         }
         return rez;
     }

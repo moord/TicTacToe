@@ -1,3 +1,9 @@
 <resources>
-    <string name="app_name">TicTacToe</string>
+    <string name="app_name">Крестики-нолики</string>
+    <string name="ai_move">Андроид думает..</string>
+    <string name="hu_move">Ваш ход</string>
+    <string name="btn_reset">Новая игра</string>
+    <string name="you_win">"Вы победили!!!"</string>
+    <string name="you_lose">Вы проиграли</string>
+    <string name="draw">Ничья</string>
 </resources>
