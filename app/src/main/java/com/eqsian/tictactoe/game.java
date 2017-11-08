@@ -8,6 +8,7 @@ import android.support.constraint.ConstraintLayout;
 import android.support.constraint.ConstraintSet;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.widget.Button;
@@ -17,6 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static android.icu.lang.UCharacter.GraphemeClusterBreak.L;
+import static android.os.Build.VERSION_CODES.N;
 
 
 public class game extends AppCompatActivity implements View.OnClickListener {
@@ -48,6 +52,7 @@ public class game extends AppCompatActivity implements View.OnClickListener {
         txtScore = (TextView) findViewById(R.id.txtScore);
 
         txtScore.setText(String.valueOf(huScore)+" : "+String.valueOf(aiScore));
+        txtStatus.setText(R.string.hu_move);
 
         btnReset = (Button) findViewById(R.id.btnReset);
 
@@ -73,7 +78,7 @@ public class game extends AppCompatActivity implements View.OnClickListener {
             View view = new View(this);
 
             view.setId(ViewIdGenerator.generateViewId());
-            view.setBackgroundColor(Color.GREEN);
+            view.setBackgroundColor(R.color.grid);
             my_layout.addView(view);
 
             set.connect(view.getId(), ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP);
@@ -87,7 +92,7 @@ public class game extends AppCompatActivity implements View.OnClickListener {
             view = new View(this);
 
             view.setId(ViewIdGenerator.generateViewId());
-            view.setBackgroundColor(Color.GREEN);
+            view.setBackgroundColor(R.color.grid);
             my_layout.addView(view);
 
             set.connect(view.getId(), ConstraintSet.LEFT, ConstraintSet.PARENT_ID, ConstraintSet.LEFT);
@@ -231,7 +236,26 @@ public class game extends AppCompatActivity implements View.OnClickListener {
                         txtStatus.setText(R.string.hu_move);
                         //txtStatus.setText( String.valueOf(fc) + ": Best move - " + String.valueOf((byte)bestSpot.index));
 
-                        if( !is_end() ) block = 0;;
+                        if( !is_end() ){
+                            block = 0;
+
+                            List<Integer> fullSpots = fullIndexies(origBoard);
+                            Log.d("MY Logs","fullSpots.size() = "+String.valueOf(fullSpots.size()));
+                            if( fullSpots.size() > 0){
+                                Random random = new Random();
+                                int t;
+                                if( (t=random.nextInt(5)) > 2)
+                                {
+                                    int i = random.nextInt(fullSpots.size());
+                                    Log.d("MY Logs","i = "+String.valueOf(i));
+
+                                    btns.get(i).setStatus((char)0);
+                                    origBoard[i] = (char)i;
+                                }
+                                Log.d("MY Logs","random = "+String.valueOf(t));
+
+                            }
+                        }
                     }
 
                 }
@@ -368,6 +392,18 @@ public class game extends AppCompatActivity implements View.OnClickListener {
         for (int i = 0; i < 9; i++) {
             if (board[i] != 'O' && board[i] != 'X') {
                 rez.add(board[i]);
+            }
+        }
+        return rez;
+    }
+
+    public List<Integer> fullIndexies(char[] board) {
+
+        List<Integer> rez = new ArrayList<>();
+
+        for (int i = 0; i < 9; i++) {
+            if (board[i] == 'O' || board[i] == 'X') {
+                rez.add(i);
             }
         }
         return rez;
