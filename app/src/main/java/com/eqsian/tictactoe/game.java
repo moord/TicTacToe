@@ -1,6 +1,7 @@
 package com.eqsian.tictactoe;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Handler;
@@ -12,6 +13,7 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -40,6 +42,8 @@ public class game extends AppCompatActivity implements View.OnClickListener {
     int huScore, aiScore;
     CrossLine cross;
 
+    ImageView imageViewHU;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,10 +55,13 @@ public class game extends AppCompatActivity implements View.OnClickListener {
         txtStatus = (TextView) findViewById(R.id.txtStatus);
         txtScore = (TextView) findViewById(R.id.txtScore);
 
-        txtScore.setText(String.valueOf(huScore)+" : "+String.valueOf(aiScore));
+        txtScore.setText(String.valueOf(huScore) + " : " + String.valueOf(aiScore));
         txtStatus.setText(R.string.hu_move);
 
         btnReset = (Button) findViewById(R.id.btnReset);
+
+        imageViewHU = (ImageView) findViewById(R.id.imgHU);
+        changeImageHU();
 
         btnReset.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -78,7 +85,7 @@ public class game extends AppCompatActivity implements View.OnClickListener {
             View view = new View(this);
 
             view.setId(ViewIdGenerator.generateViewId());
-            view.setBackgroundColor(R.color.grid);
+            view.setBackgroundColor(getResources().getColor(R.color.grid));
             my_layout.addView(view);
 
             set.connect(view.getId(), ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP);
@@ -92,7 +99,7 @@ public class game extends AppCompatActivity implements View.OnClickListener {
             view = new View(this);
 
             view.setId(ViewIdGenerator.generateViewId());
-            view.setBackgroundColor(R.color.grid);
+            view.setBackgroundColor(getResources().getColor(R.color.grid));
             my_layout.addView(view);
 
             set.connect(view.getId(), ConstraintSet.LEFT, ConstraintSet.PARENT_ID, ConstraintSet.LEFT);
@@ -176,6 +183,20 @@ public class game extends AppCompatActivity implements View.OnClickListener {
         set.applyTo(my_layout);
     }
 
+    public void changeImageHU() {
+        int scoreDiff = huScore - aiScore;
+        if (scoreDiff < 0) {
+            imageViewHU.setImageResource(R.drawable.level0);
+        } else if (scoreDiff < 2) {
+            imageViewHU.setImageResource(R.drawable.level1);
+        } else if (scoreDiff < 4){
+            imageViewHU.setImageResource(R.drawable.level2);
+        } else {
+            imageViewHU.setImageResource(R.drawable.level3);
+        }
+
+    }
+
     public void reset_game() {
         for (int i = 0; i < 9; i++) {
             origBoard[i] = (char) i;
@@ -187,7 +208,7 @@ public class game extends AppCompatActivity implements View.OnClickListener {
         cross.setStatus(0);
 
         btnReset.setVisibility(View.GONE);
-        txtScore.setText(String.valueOf(huScore)+" : "+String.valueOf(aiScore));
+        txtScore.setText(String.valueOf(huScore) + " : " + String.valueOf(aiScore));
 
         block = 0; // новая игра
     }
@@ -206,7 +227,7 @@ public class game extends AppCompatActivity implements View.OnClickListener {
             block = 1;
 
 
-           // ((Button) v).setText(String.valueOf(huPlayer));
+            // ((Button) v).setText(String.valueOf(huPlayer));
             ((TicTacToeButton) v).setStatus(huPlayer);
             // human
 
@@ -226,34 +247,32 @@ public class game extends AppCompatActivity implements View.OnClickListener {
                     if (!is_end()) {
 
 
+                        int del_index = 10;
+                        List<Integer> fullSpots = fullIndexies(origBoard);
+                        if (fullSpots.size() > 2) {
+                            Random random = new Random();
+                            if ((random.nextInt(5)) > 2) {
+                                del_index = random.nextInt(fullSpots.size());
+                                Log.d("MY Logs", "i = " + String.valueOf(del_index));
+                            }
+                        }
+
                         fc = 0;
                         Move bestSpot = minimax(origBoard, aiPlayer);
 
-                       // btns.get((byte) bestSpot.index).setText(String.valueOf(aiPlayer));
+                        // btns.get((byte) bestSpot.index).setText(String.valueOf(aiPlayer));
                         btns.get((byte) bestSpot.index).setStatus(aiPlayer);
                         origBoard[(byte) bestSpot.index] = aiPlayer;
 
                         txtStatus.setText(R.string.hu_move);
                         //txtStatus.setText( String.valueOf(fc) + ": Best move - " + String.valueOf((byte)bestSpot.index));
 
-                        if( !is_end() ){
+                        if (!is_end()) {
                             block = 0;
 
-                            List<Integer> fullSpots = fullIndexies(origBoard);
-                            Log.d("MY Logs","fullSpots.size() = "+String.valueOf(fullSpots.size()));
-                            if( fullSpots.size() > 0){
-                                Random random = new Random();
-                                int t;
-                                if( (t=random.nextInt(5)) > 2)
-                                {
-                                    int i = random.nextInt(fullSpots.size());
-                                    Log.d("MY Logs","i = "+String.valueOf(i));
-
-                                    btns.get(i).setStatus((char)0);
-                                    origBoard[i] = (char)i;
-                                }
-                                Log.d("MY Logs","random = "+String.valueOf(t));
-
+                            if (del_index != 10) {
+                                btns.get(fullSpots.get(del_index)).setStatus((char) 0);
+                                origBoard[fullSpots.get(del_index)] = (char) (fullSpots.get(del_index).intValue());
                             }
                         }
                     }
@@ -273,7 +292,7 @@ public class game extends AppCompatActivity implements View.OnClickListener {
             win_state = getString(R.string.you_win);
             huScore++;
             cross.setStatus(win);
-        } else if ((win=winning(origBoard, aiPlayer))!=0) {
+        } else if ((win = winning(origBoard, aiPlayer)) != 0) {
             rez = true;
             win_state = getString(R.string.you_lose);
             aiScore++;
@@ -289,6 +308,8 @@ public class game extends AppCompatActivity implements View.OnClickListener {
             txtStatus.setText("");
             btnReset.setVisibility(View.VISIBLE);
             txtScore.setText(win_state);
+
+            changeImageHU();
 
         }
         return rez;
@@ -412,21 +433,21 @@ public class game extends AppCompatActivity implements View.OnClickListener {
     // winning combinations using the board indexies for instace the first win could be 3 xes in a row
     public int winning(char[] board, char player) {
         int rez = 0;
-        if (board[0] == player && board[1] == player && board[2] == player){
+        if (board[0] == player && board[1] == player && board[2] == player) {
             rez = 1;
-        } else if(board[3] == player && board[4] == player && board[5] == player){
+        } else if (board[3] == player && board[4] == player && board[5] == player) {
             rez = 2;
-        } else if(board[6] == player && board[7] == player && board[8] == player){
+        } else if (board[6] == player && board[7] == player && board[8] == player) {
             rez = 3;
-        }else if(board[0] == player && board[3] == player && board[6] == player){
+        } else if (board[0] == player && board[3] == player && board[6] == player) {
             rez = 4;
-        }else if(board[1] == player && board[4] == player && board[7] == player){
+        } else if (board[1] == player && board[4] == player && board[7] == player) {
             rez = 5;
-        }else if(board[2] == player && board[5] == player && board[8] == player){
+        } else if (board[2] == player && board[5] == player && board[8] == player) {
             rez = 6;
-        }else if(board[0] == player && board[4] == player && board[8] == player){
+        } else if (board[0] == player && board[4] == player && board[8] == player) {
             rez = 7;
-        }else if(board[2] == player && board[4] == player && board[6] == player){
+        } else if (board[2] == player && board[4] == player && board[6] == player) {
             rez = 8;
         }
         return rez;
