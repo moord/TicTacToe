@@ -7,4 +7,7 @@
     <string name="you_win">WIN</string>
     <string name="draw">DRAW</string>
     <string name="btn_reset">New game</string>
+    <string name="btn_play_classic_title">Classsic game</string>
+    <string name="btn_play_random_title">Random game</string>
+    <string name="btn_help_title">Help</string>
 </resources>

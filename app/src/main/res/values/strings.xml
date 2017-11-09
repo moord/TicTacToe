@@ -6,4 +6,7 @@
     <string name="you_win">"Вы победили!!!"</string>
     <string name="you_lose">Вы проиграли</string>
     <string name="draw">Ничья</string>
+    <string name="btn_play_random_title">Неожиданная игра</string>
+    <string name="btn_help_title">Помощь</string>
+    <string name="btn_play_classic_title">Обычная игра</string>
 </resources>

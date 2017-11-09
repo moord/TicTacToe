@@ -32,8 +32,9 @@ public class game extends AppCompatActivity implements View.OnClickListener {
     final int GRID_SIZE = 3;
     static final String STATE_HU_SCORE = "huScore";
     static final String STATE_AI_SCORE = "aiScore";
-    static final int CLASSIC_GAME = 0;
-    static final int RANDOM_GAME = 1;
+    static final String STATE_GAME_TYPE = "gameType";
+    public static final int CLASSIC_GAME = 0;
+    public static final int RANDOM_GAME = 1;
 
     ConstraintLayout my_layout;
     TextView txtStatus;
@@ -67,8 +68,7 @@ public class game extends AppCompatActivity implements View.OnClickListener {
 
         huPlayer = intent.getCharExtra("huPlayer",'X');
         aiPlayer = intent.getCharExtra("aiPlayer",'O');
-
-        gameType = RANDOM_GAME;
+        gameType = intent.getIntExtra("gameType", RANDOM_GAME);
 
         sPref = getPreferences(MODE_PRIVATE);
 
