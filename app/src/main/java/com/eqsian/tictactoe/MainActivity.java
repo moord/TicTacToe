@@ -1,6 +1,7 @@
 package com.eqsian.tictactoe;
 
 import android.app.Activity;
+import android.app.DialogFragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -52,6 +53,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 startActivity(intent);
                 break;
             case R.id.btnHelp:
+//                DialogFragment myDialogFragment = new DialogXO();
+                DialogXO myDialogFragment = DialogXO.newInstance(game.RANDOM_GAME);
+                myDialogFragment.show(getFragmentManager(), "dialog");
                 Toast.makeText(this,"АНЯ ПОМОГИ!!!",Toast.LENGTH_LONG).show();
                 break;
             default:

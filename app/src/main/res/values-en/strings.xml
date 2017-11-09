@@ -10,4 +10,7 @@
     <string name="btn_play_classic_title">Classsic game</string>
     <string name="btn_play_random_title">Random game</string>
     <string name="btn_help_title">Help</string>
+    <string name="message_text">Select</string>
+    <string name="symb_o">O</string>
+    <string name="symb_x">X</string>
 </resources>

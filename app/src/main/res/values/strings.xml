@@ -9,4 +9,7 @@
     <string name="btn_play_random_title">Неожиданная игра</string>
     <string name="btn_help_title">Помощь</string>
     <string name="btn_play_classic_title">Обычная игра</string>
+    <string name="message_text">Ваш символ?</string>
+    <string name="symb_x">X</string>
+    <string name="symb_o">O</string>
 </resources>
