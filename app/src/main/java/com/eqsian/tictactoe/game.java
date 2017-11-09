@@ -5,6 +5,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Handler;
+import android.os.PersistableBundle;
 import android.support.constraint.ConstraintLayout;
 import android.support.constraint.ConstraintSet;
 import android.support.v7.app.AppCompatActivity;
@@ -27,6 +28,8 @@ import static android.os.Build.VERSION_CODES.N;
 
 public class game extends AppCompatActivity implements View.OnClickListener {
     final int GRID_SIZE = 3;
+    static final String STATE_HU_SCORE = "huScore";
+    static final String STATE_AI_SCORE = "huScore";
 
     ConstraintLayout my_layout;
     TextView txtStatus;
@@ -181,6 +184,24 @@ public class game extends AppCompatActivity implements View.OnClickListener {
         set.connect(cross.getId(), ConstraintSet.RIGHT, ConstraintSet.PARENT_ID, ConstraintSet.RIGHT);
 
         set.applyTo(my_layout);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putInt(STATE_AI_SCORE, aiScore);
+        outState.putInt(STATE_HU_SCORE, huScore);
+
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        aiScore = savedInstanceState.getInt(STATE_AI_SCORE);
+        huScore = savedInstanceState.getInt(STATE_HU_SCORE);
+
+        txtScore.setText(String.valueOf(huScore) + " : " + String.valueOf(aiScore));
+
     }
 
     public void changeImageHU() {
