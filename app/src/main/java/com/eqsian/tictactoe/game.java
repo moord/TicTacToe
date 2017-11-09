@@ -2,6 +2,8 @@ package com.eqsian.tictactoe;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Handler;
@@ -29,7 +31,9 @@ import static android.os.Build.VERSION_CODES.N;
 public class game extends AppCompatActivity implements View.OnClickListener {
     final int GRID_SIZE = 3;
     static final String STATE_HU_SCORE = "huScore";
-    static final String STATE_AI_SCORE = "huScore";
+    static final String STATE_AI_SCORE = "aiScore";
+    static final int CLASSIC_GAME = 0;
+    static final int RANDOM_GAME = 1;
 
     ConstraintLayout my_layout;
     TextView txtStatus;
@@ -47,16 +51,35 @@ public class game extends AppCompatActivity implements View.OnClickListener {
 
     ImageView imageViewHU;
 
+    SharedPreferences sPref;
+
+    int gameType;
+
+    char huPlayer;
+    char aiPlayer;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
+
+        Intent intent = getIntent();
+
+        huPlayer = intent.getCharExtra("huPlayer",'X');
+        aiPlayer = intent.getCharExtra("aiPlayer",'O');
+
+        gameType = RANDOM_GAME;
+
+        sPref = getPreferences(MODE_PRIVATE);
 
         block = 0;
         huScore = 0;
         aiScore = 0;
         txtStatus = (TextView) findViewById(R.id.txtStatus);
         txtScore = (TextView) findViewById(R.id.txtScore);
+
+        huScore = sPref.getInt(STATE_HU_SCORE, 0);
+        aiScore = sPref.getInt(STATE_AI_SCORE, 0);
 
         txtScore.setText(String.valueOf(huScore) + " : " + String.valueOf(aiScore));
         txtStatus.setText(R.string.hu_move);
@@ -184,12 +207,37 @@ public class game extends AppCompatActivity implements View.OnClickListener {
         set.connect(cross.getId(), ConstraintSet.RIGHT, ConstraintSet.PARENT_ID, ConstraintSet.RIGHT);
 
         set.applyTo(my_layout);
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (aiPlayer == 'X') {
+            Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                public void run() {
+                    // сделать первый ход
+                    Random random = new Random();
+                    int index = random.nextInt(GRID_SIZE*GRID_SIZE);
+
+                    btns.get(index).setStatus(aiPlayer);
+                    origBoard[index] = aiPlayer;
+
+                    txtStatus.setText(R.string.hu_move);
+                }
+
+            }, 1000);
+        }
+
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         outState.putInt(STATE_AI_SCORE, aiScore);
         outState.putInt(STATE_HU_SCORE, huScore);
+
+        Log.d("MY Log", "onSaveInstanceState");
 
         super.onSaveInstanceState(outState);
     }
@@ -202,6 +250,7 @@ public class game extends AppCompatActivity implements View.OnClickListener {
 
         txtScore.setText(String.valueOf(huScore) + " : " + String.valueOf(aiScore));
 
+        Log.d("MY Log", "onRestoreInstanceState");
     }
 
     public void changeImageHU() {
@@ -210,7 +259,7 @@ public class game extends AppCompatActivity implements View.OnClickListener {
             imageViewHU.setImageResource(R.drawable.level0);
         } else if (scoreDiff < 2) {
             imageViewHU.setImageResource(R.drawable.level1);
-        } else if (scoreDiff < 4){
+        } else if (scoreDiff < 4) {
             imageViewHU.setImageResource(R.drawable.level2);
         } else {
             imageViewHU.setImageResource(R.drawable.level3);
@@ -232,11 +281,19 @@ public class game extends AppCompatActivity implements View.OnClickListener {
         txtScore.setText(String.valueOf(huScore) + " : " + String.valueOf(aiScore));
 
         block = 0; // новая игра
+
+        if (aiPlayer == 'X') {
+            Random random = new Random();
+            int index = random.nextInt(GRID_SIZE*GRID_SIZE);
+
+            btns.get(index).setStatus(aiPlayer);
+            origBoard[index] = aiPlayer;
+
+            txtStatus.setText(R.string.hu_move);
+        }
+
     }
 
-    char huPlayer = 'X';
-    //ai
-    char aiPlayer = 'O';
 
     int fc;
 
@@ -267,16 +324,19 @@ public class game extends AppCompatActivity implements View.OnClickListener {
 //                    txtStatus.setText("прошло 2 сек");
                     if (!is_end()) {
 
-
                         int del_index = 10;
+
                         List<Integer> fullSpots = fullIndexies(origBoard);
-                        if (fullSpots.size() > 2) {
-                            Random random = new Random();
-                            if ((random.nextInt(5)) > 2) {
-                                del_index = random.nextInt(fullSpots.size());
-                                Log.d("MY Logs", "i = " + String.valueOf(del_index));
+                        if (gameType == RANDOM_GAME) {
+                            if (fullSpots.size() > 2) {
+                                Random random = new Random();
+                                if ((random.nextInt(5)) > 2) {
+                                    del_index = random.nextInt(fullSpots.size());
+                                    Log.d("MY Logs", "i = " + String.valueOf(del_index));
+                                }
                             }
                         }
+
 
                         fc = 0;
                         Move bestSpot = minimax(origBoard, aiPlayer);
@@ -311,13 +371,24 @@ public class game extends AppCompatActivity implements View.OnClickListener {
         if ((win = winning(origBoard, huPlayer)) != 0) {
             rez = true;
             win_state = getString(R.string.you_win);
+
             huScore++;
+            SharedPreferences.Editor ed = sPref.edit();
+            ed.putInt(STATE_HU_SCORE, huScore);
+            ed.commit();
+
             cross.setStatus(win);
         } else if ((win = winning(origBoard, aiPlayer)) != 0) {
             rez = true;
             win_state = getString(R.string.you_lose);
+
             aiScore++;
+            SharedPreferences.Editor ed = sPref.edit();
+            ed.putInt(STATE_AI_SCORE, aiScore);
+            ed.commit();
+
             cross.setStatus(win);
+
         } else if (emptyIndexies(origBoard).size() == 0) {
             rez = true;
             win_state = getString(R.string.draw);
