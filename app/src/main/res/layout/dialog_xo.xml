@@ -16,19 +16,23 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
+
         <Button
             android:id="@+id/btnX"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
-            android:text="@string/symb_x">
-        </Button>
+            android:text="@string/symb_x"
+            android:textColor="#ff0000"
+            android:textSize="24sp"></Button>
+
         <Button
             android:id="@+id/btnO"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
-            android:text="@string/symb_o">
-        </Button>
+            android:text="@string/symb_o"
+            android:textColor="#0000FF"
+            android:textSize="24sp"></Button>
     </LinearLayout>
 </LinearLayout>
