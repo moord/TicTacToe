@@ -1,6 +1,7 @@
 package com.eqsian.tictactoe;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -8,12 +9,15 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Handler;
 import android.os.PersistableBundle;
+import android.preference.PreferenceManager;
 import android.support.constraint.ConstraintLayout;
 import android.support.constraint.ConstraintSet;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -30,11 +34,15 @@ import static android.os.Build.VERSION_CODES.N;
 
 public class game extends AppCompatActivity implements View.OnClickListener {
     final int GRID_SIZE = 3;
+    final String TAG = "My log";
     static final String STATE_HU_SCORE = "huScore";
     static final String STATE_AI_SCORE = "aiScore";
     static final String STATE_GAME_TYPE = "gameType";
     public static final int CLASSIC_GAME = 0;
     public static final int RANDOM_GAME = 1;
+    static final int  MENU_RESET_ID = 0;
+    static final int  MENU_OPTIONS_ID = 1;
+    static final int   MENU_QUIT_ID = 2;
 
     ConstraintLayout my_layout;
     TextView txtStatus;
@@ -59,6 +67,10 @@ public class game extends AppCompatActivity implements View.OnClickListener {
     char huPlayer;
     char aiPlayer;
 
+    SharedPreferences sp;
+
+    Boolean animation;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,6 +81,8 @@ public class game extends AppCompatActivity implements View.OnClickListener {
         huPlayer = intent.getCharExtra("huPlayer",'X');
         aiPlayer = intent.getCharExtra("aiPlayer",'O');
         gameType = intent.getIntExtra("gameType", RANDOM_GAME);
+
+        sp = PreferenceManager.getDefaultSharedPreferences(this);
 
         sPref = getPreferences(MODE_PRIVATE);
 
@@ -213,6 +227,12 @@ public class game extends AppCompatActivity implements View.OnClickListener {
     @Override
     protected void onResume() {
         super.onResume();
+        animation = sp.getBoolean("pref_btn_animation", true);
+
+        for (TicTacToeButton btn : btns) {
+            btn.animation = animation;
+        }
+
         if (aiPlayer == 'X') {
             Handler handler = new Handler();
             handler.postDelayed(new Runnable() {
@@ -252,6 +272,46 @@ public class game extends AppCompatActivity implements View.OnClickListener {
 
         Log.d("MY Log", "onRestoreInstanceState");
     }
+
+    // создание меню
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        menu.add(0, MENU_RESET_ID, 0, getString(R.string.menu_id_reset));
+        menu.add(0, MENU_OPTIONS_ID, 0, getString(R.string.menu_id_options));
+        menu.add(0, MENU_QUIT_ID, 0, getString(R.string.menu_id_quit));
+        //getMenuInflater().inflate(R.menu.mymenu, menu); вариант для XML меню
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    // обработка нажатий на пункты меню
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case MENU_RESET_ID:
+                huScore = 0;
+                aiScore = 0;
+
+                SharedPreferences.Editor ed = sPref.edit();
+                ed.putInt(STATE_HU_SCORE, huScore);
+                ed.commit();
+
+                txtScore.setText(String.valueOf(huScore) + " : " + String.valueOf(aiScore));
+
+                changeImageHU();
+                break;
+            case MENU_OPTIONS_ID:
+                // выход из приложения
+                //finish();
+                startActivity(new Intent(this, SettingsActivity.class));
+                break;
+            case MENU_QUIT_ID:
+                // выход из приложения
+                finish();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
 
     public void changeImageHU() {
         int scoreDiff = huScore - aiScore;
@@ -359,7 +419,7 @@ public class game extends AppCompatActivity implements View.OnClickListener {
                     }
 
                 }
-            }, 750);
+            }, (animation?750:0));
 
         }
     }
