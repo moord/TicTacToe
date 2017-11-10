@@ -13,4 +13,9 @@
     <string name="message_text">Select</string>
     <string name="symb_o">O</string>
     <string name="symb_x">X</string>
+    <string name="menu_id_reset">Reset score</string>
+    <string name="menu_id_options">Options</string>
+    <string name="menu_id_quit">Quit</string>
+    <string name="pref_sync">Animation</string>
+    <string name="pref_sync_summ">Enable animation X and O</string>
 </resources>

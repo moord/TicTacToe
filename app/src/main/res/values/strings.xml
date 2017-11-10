@@ -12,4 +12,9 @@
     <string name="message_text">Ваш символ?</string>
     <string name="symb_x">X</string>
     <string name="symb_o">O</string>
+    <string name="menu_id_reset">Обнулить счет</string>
+    <string name="menu_id_options">Настройки</string>
+    <string name="menu_id_quit">Выход</string>
+    <string name="pref_sync">Анимация</string>
+    <string name="pref_sync_summ">Включени анимации X и О</string>
 </resources>

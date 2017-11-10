@@ -28,22 +28,26 @@ public class TicTacToeButton extends View {
     private int mWidth; //ширина view
     private int mHeight; //высота view
     private char status;
+    public Boolean animation;
 
     public TicTacToeButton(Context context) {
         super(context);
         status = 0;
+        animation = true;
         init();
     }
 
     public TicTacToeButton(Context context, AttributeSet attrs) {
         super(context, attrs);
         status = 0;
+        animation = true;
         init();
     }
 
     public TicTacToeButton(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         status = 0;
+        animation = true;
         init();
     }
 
@@ -78,16 +82,20 @@ public class TicTacToeButton extends View {
         }
 
         // Measure the path
-        PathMeasure measure = new PathMeasure(path, false);
-        length = measure.getLength();
+        if( animation) {
+            PathMeasure measure = new PathMeasure(path, false);
+            length = measure.getLength();
 
-        Log.d("pathview", "setPhase called with:" + String.valueOf(length));
+            float[] intervals = new float[]{length, length};
 
-        float[] intervals = new float[]{length, length};
-
-        ObjectAnimator animator = ObjectAnimator.ofFloat(TicTacToeButton.this, "phase", 1.0f, 0.0f);
-        animator.setDuration(500);
-        animator.start();
+            ObjectAnimator animator = ObjectAnimator.ofFloat(TicTacToeButton.this, "phase", 1.0f, 0.0f);
+            animator.setDuration(500);
+            animator.start();
+        }
+        else{
+            paint.setPathEffect(new DiscretePathEffect(2, 1));
+            invalidate();
+        }
     }
 
     public char getStatus() {

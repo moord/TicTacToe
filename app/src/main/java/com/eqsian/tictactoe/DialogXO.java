@@ -2,12 +2,14 @@ package com.eqsian.tictactoe;
  
 import android.app.DialogFragment;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.Button;
 /**
  * Created by Андрей on 02.11.2017.
@@ -29,7 +31,8 @@ public class DialogXO extends DialogFragment implements OnClickListener {
   }
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
       Bundle savedInstanceState) {
-    getDialog().setTitle("Title!");
+   // getDialog().setTitle("Title!");
+    getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
     View v = inflater.inflate(R.layout.dialog_xo, null);
     v.findViewById(R.id.btnX).setOnClickListener(this);
     v.findViewById(R.id.btnO).setOnClickListener(this);
@@ -40,18 +43,31 @@ public class DialogXO extends DialogFragment implements OnClickListener {
   }
  
   public void onClick(View v) {
-    Log.d(LOG_TAG, "Dialog 1: " + ((Button) v).getText());
+   // Log.d(LOG_TAG, "Dialog 1: " + ((Button) v).getText());
+    Intent intent = new Intent(getActivity(), game.class);
+    switch(((Button) v).getId()){
+      case R.id.btnX:
+        intent.putExtra("huPlayer",'X');
+        intent.putExtra("aiPlayer",'O');
+        break;
+      case R.id.btnO:
+        intent.putExtra("huPlayer",'O');
+        intent.putExtra("aiPlayer",'X');
+        break;
+    }
+    intent.putExtra("gameType", gameType);
+    startActivity(intent);
     dismiss();
   }
  
   public void onDismiss(DialogInterface dialog) {
     super.onDismiss(dialog);
-    Log.d(LOG_TAG, "Dialog 1: onDismiss");
+    //Log.d(LOG_TAG, "Dialog 1: onDismiss");
   }
  
   public void onCancel(DialogInterface dialog) {
     super.onCancel(dialog);
-    Log.d(LOG_TAG, "Dialog 1: onCancel");
+   // Log.d(LOG_TAG, "Dialog 1: onCancel");
   }
 }
 /*
