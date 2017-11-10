@@ -48,7 +48,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 myDialogFragment.show(getFragmentManager(), "dialog");
                 break;
             case R.id.btnHelp:
-                Toast.makeText(this,"АНЯ ПОМОГИ!!!",Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(this, HelpActivity.class);
+                startActivity(intent);
                 break;
             default:
                 break;
