@@ -1,20 +1,15 @@
 package com.eqsian.tictactoe;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Handler;
-import android.os.PersistableBundle;
 import android.preference.PreferenceManager;
 import android.support.constraint.ConstraintLayout;
 import android.support.constraint.ConstraintSet;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -28,9 +23,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static android.icu.lang.UCharacter.GraphemeClusterBreak.L;
-import static android.os.Build.VERSION_CODES.N;
-
 
 public class game extends AppCompatActivity implements View.OnClickListener {
     final int GRID_SIZE = 3;
@@ -42,33 +34,32 @@ public class game extends AppCompatActivity implements View.OnClickListener {
     public static final int RANDOM_GAME = 1;
     static final int  MENU_RESET_ID = 0;
     static final int  MENU_OPTIONS_ID = 1;
-    static final int   MENU_QUIT_ID = 2;
+    static final int  MENU_QUIT_ID = 2;
 
-    ConstraintLayout my_layout;
+    final Random random = new Random();
+
+    ConstraintLayout game_layout;
     TextView txtStatus;
     TextView txtScore;
-    char origBoard[] = {0, 1, 2, 3, 4, 5, 6, 7, 8};
-
-    List<TicTacToeButton> btns = new ArrayList<>();
-
     Button btnReset;
-
-    String win_state = "Победа";
-    int block;
-    int huScore, aiScore;
-    CrossLine cross;
-
+    List<TicTacToeButton> btns = new ArrayList<>();
     ImageView imageViewHU;
 
-    SharedPreferences sPref;
-
-    int gameType;
-
-    char huPlayer;
-    char aiPlayer;
+    CrossLine cross;
 
     SharedPreferences sp;
 
+    char origBoard[] = {0, 1, 2, 3, 4, 5, 6, 7, 8};
+
+    int block;
+    int huScore, aiScore;
+
+    // кто первый ходит, тип игры
+    char huPlayer;
+    char aiPlayer;
+    int gameType;
+
+    // настройки
     Boolean animation;
 
     @Override
@@ -84,25 +75,22 @@ public class game extends AppCompatActivity implements View.OnClickListener {
 
         sp = PreferenceManager.getDefaultSharedPreferences(this);
 
-        sPref = getPreferences(MODE_PRIVATE);
-
         block = 0;
         huScore = 0;
         aiScore = 0;
         txtStatus = (TextView) findViewById(R.id.txtStatus);
         txtScore = (TextView) findViewById(R.id.txtScore);
 
-        huScore = sPref.getInt(STATE_HU_SCORE, 0);
-        aiScore = sPref.getInt(STATE_AI_SCORE, 0);
+        huScore = sp.getInt(STATE_HU_SCORE, 0);
+        aiScore = sp.getInt(STATE_AI_SCORE, 0);
 
         txtScore.setText(String.valueOf(huScore) + " : " + String.valueOf(aiScore));
         txtStatus.setText(R.string.hu_move);
 
-        btnReset = (Button) findViewById(R.id.btnReset);
-
         imageViewHU = (ImageView) findViewById(R.id.imgHU);
         changeImageHU();
 
+        btnReset = (Button) findViewById(R.id.btnReset);
         btnReset.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -110,23 +98,156 @@ public class game extends AppCompatActivity implements View.OnClickListener {
             }
         });
 
+        game_layout = (ConstraintLayout) findViewById(R.id.constr_layout);
 
-        int h_constraint[] = new int[GRID_SIZE - 1];
-        int v_constraint[] = new int[GRID_SIZE - 1];
+        createGameBoard();
+    }
 
-        my_layout = (ConstraintLayout) findViewById(R.id.constr_layout);
+    @Override
+    protected void onResume() {
+        super.onResume();
+        animation = sp.getBoolean("pref_btn_animation", true);
 
+        for (TicTacToeButton btn : btns) {
+            btn.animation = animation;
+        }
+
+        if (aiPlayer == 'X') {
+            Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                public void run() {
+                    // сделать первый ход
+                    drawMove(random.nextInt(GRID_SIZE*GRID_SIZE), aiPlayer);
+                }
+
+            }, 1000);
+        }
+
+    }
+
+    // создание меню
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        menu.add(0, MENU_RESET_ID, 0, getString(R.string.menu_id_reset));
+        menu.add(0, MENU_OPTIONS_ID, 0, getString(R.string.menu_id_options));
+        menu.add(0, MENU_QUIT_ID, 0, getString(R.string.menu_id_quit));
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    // обработка нажатий на пункты меню
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case MENU_RESET_ID:
+                SharedPreferences.Editor ed = sp.edit();
+                ed.putInt(STATE_HU_SCORE, huScore = 0);
+                ed.putInt(STATE_AI_SCORE, aiScore = 0);
+                ed.commit();
+
+                txtScore.setText(String.valueOf(huScore) + " : " + String.valueOf(aiScore));
+
+                changeImageHU();
+                break;
+            case MENU_OPTIONS_ID:
+                // Окно с настройками
+                startActivity(new Intent(this, SettingsActivity.class));
+                break;
+            case MENU_QUIT_ID:
+                // Возврат в главное меню
+                finish();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+
+    public void changeImageHU() {
+        int scoreDiff = huScore - aiScore;
+        if (scoreDiff < 0) {
+            imageViewHU.setImageResource(R.drawable.level0);
+        } else if (scoreDiff < 2) {
+            imageViewHU.setImageResource(R.drawable.level1);
+        } else if (scoreDiff < 4) {
+            imageViewHU.setImageResource(R.drawable.level2);
+        } else {
+            imageViewHU.setImageResource(R.drawable.level3);
+        }
+    }
+
+    public void reset_game() {
+        for (int i = 0; i < 9; i++) {
+            drawMove(i,(char)i);
+        }
+        cross.setStatus(0);
+
+        btnReset.setVisibility(View.GONE);
+        txtScore.setText(String.valueOf(huScore) + " : " + String.valueOf(aiScore));
+
+        block = 0; // новая игра
+
+        if (aiPlayer == 'X') {
+            drawMove(random.nextInt(GRID_SIZE*GRID_SIZE),aiPlayer); // первый ход AI
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        if (((TicTacToeButton) v).getStatus() != 'X' && ((TicTacToeButton) v).getStatus() != 'O'  && block == 0) {
+            block = 1;
+
+            // Нажата кнопка 'huPlayer'
+            drawMove((int)v.getTag(),huPlayer);
+
+            Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                public void run() {
+                    if (!is_end()) {
+
+                        int del_index = 10;
+
+                        List<Integer> fullSpots = fullIndexies(origBoard);
+                        if (gameType == RANDOM_GAME) {
+                            if (fullSpots.size() > 2) {
+                                if ((random.nextInt(5)) > 2) {
+                                    del_index = random.nextInt(fullSpots.size());
+                                }
+                            }
+                        }
+
+                        Move bestSpot = minimax(origBoard, aiPlayer);
+
+                        drawMove(bestSpot.index, aiPlayer);
+
+                        if (!is_end()) {
+                            block = 0;
+
+                            if (del_index != 10) {
+                                drawMove(fullSpots.get(del_index), (char) 0); // Элемент неожиданности: случайное удаление клетки
+                            }
+                        }
+                    }
+
+                }
+            }, (animation?750:0));
+
+        }
+    }
+
+    private void createGameBoard(){
         ConstraintSet set = new ConstraintSet();
 
         // copy constraints settings from current ConstraintLayout to set
-        set.clone(my_layout);
+        set.clone(game_layout);
+
+        int h_constraint[] = new int[GRID_SIZE - 1];
+        int v_constraint[] = new int[GRID_SIZE - 1];
 
         for (int i = 0; i < GRID_SIZE - 1; i++) {
             View view = new View(this);
 
             view.setId(ViewIdGenerator.generateViewId());
             view.setBackgroundColor(getResources().getColor(R.color.grid));
-            my_layout.addView(view);
+            game_layout.addView(view);
 
             set.connect(view.getId(), ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP);
             set.connect(view.getId(), ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM);
@@ -140,7 +261,7 @@ public class game extends AppCompatActivity implements View.OnClickListener {
 
             view.setId(ViewIdGenerator.generateViewId());
             view.setBackgroundColor(getResources().getColor(R.color.grid));
-            my_layout.addView(view);
+            game_layout.addView(view);
 
             set.connect(view.getId(), ConstraintSet.LEFT, ConstraintSet.PARENT_ID, ConstraintSet.LEFT);
             set.connect(view.getId(), ConstraintSet.RIGHT, ConstraintSet.PARENT_ID, ConstraintSet.RIGHT);
@@ -178,7 +299,7 @@ public class game extends AppCompatActivity implements View.OnClickListener {
 
                 btns.add(btn);
 
-                my_layout.addView(btn);
+                game_layout.addView(btn);
 
                 if (i == 0) {
                     set.connect(btn.getId(), ConstraintSet.LEFT, ConstraintSet.PARENT_ID, ConstraintSet.LEFT);
@@ -213,227 +334,39 @@ public class game extends AppCompatActivity implements View.OnClickListener {
 
         cross = new CrossLine(this);
         cross.setId(ViewIdGenerator.generateViewId());
-        my_layout.addView(cross);
+        game_layout.addView(cross);
 
         set.connect(cross.getId(), ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP);
         set.connect(cross.getId(), ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM);
         set.connect(cross.getId(), ConstraintSet.LEFT, ConstraintSet.PARENT_ID, ConstraintSet.LEFT);
         set.connect(cross.getId(), ConstraintSet.RIGHT, ConstraintSet.PARENT_ID, ConstraintSet.RIGHT);
 
-        set.applyTo(my_layout);
-
+        set.applyTo(game_layout);
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        animation = sp.getBoolean("pref_btn_animation", true);
+    private void drawMove( int index, char player ){
+        btns.get(index).setStatus(player);
+        origBoard[index] = player;
 
-        for (TicTacToeButton btn : btns) {
-            btn.animation = animation;
-        }
-
-        if (aiPlayer == 'X') {
-            Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
-                public void run() {
-                    // сделать первый ход
-                    Random random = new Random();
-                    int index = random.nextInt(GRID_SIZE*GRID_SIZE);
-
-                    btns.get(index).setStatus(aiPlayer);
-                    origBoard[index] = aiPlayer;
-
-                    txtStatus.setText(R.string.hu_move);
-                }
-
-            }, 1000);
-        }
-
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        outState.putInt(STATE_AI_SCORE, aiScore);
-        outState.putInt(STATE_HU_SCORE, huScore);
-
-        Log.d("MY Log", "onSaveInstanceState");
-
-        super.onSaveInstanceState(outState);
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        aiScore = savedInstanceState.getInt(STATE_AI_SCORE);
-        huScore = savedInstanceState.getInt(STATE_HU_SCORE);
-
-        txtScore.setText(String.valueOf(huScore) + " : " + String.valueOf(aiScore));
-
-        Log.d("MY Log", "onRestoreInstanceState");
-    }
-
-    // создание меню
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        menu.add(0, MENU_RESET_ID, 0, getString(R.string.menu_id_reset));
-        menu.add(0, MENU_OPTIONS_ID, 0, getString(R.string.menu_id_options));
-        menu.add(0, MENU_QUIT_ID, 0, getString(R.string.menu_id_quit));
-        //getMenuInflater().inflate(R.menu.mymenu, menu); вариант для XML меню
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    // обработка нажатий на пункты меню
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case MENU_RESET_ID:
-                huScore = 0;
-                aiScore = 0;
-
-                SharedPreferences.Editor ed = sPref.edit();
-                ed.putInt(STATE_HU_SCORE, huScore);
-                ed.commit();
-
-                txtScore.setText(String.valueOf(huScore) + " : " + String.valueOf(aiScore));
-
-                changeImageHU();
-                break;
-            case MENU_OPTIONS_ID:
-                // выход из приложения
-                //finish();
-                startActivity(new Intent(this, SettingsActivity.class));
-                break;
-            case MENU_QUIT_ID:
-                // выход из приложения
-                finish();
-                break;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-
-    public void changeImageHU() {
-        int scoreDiff = huScore - aiScore;
-        if (scoreDiff < 0) {
-            imageViewHU.setImageResource(R.drawable.level0);
-        } else if (scoreDiff < 2) {
-            imageViewHU.setImageResource(R.drawable.level1);
-        } else if (scoreDiff < 4) {
-            imageViewHU.setImageResource(R.drawable.level2);
-        } else {
-            imageViewHU.setImageResource(R.drawable.level3);
-        }
-
-    }
-
-    public void reset_game() {
-        for (int i = 0; i < 9; i++) {
-            origBoard[i] = (char) i;
-        }
-        for (TicTacToeButton btn : btns) {
-            //btn.setText("");
-            btn.setStatus((char) 0);
-        }
-        cross.setStatus(0);
-
-        btnReset.setVisibility(View.GONE);
-        txtScore.setText(String.valueOf(huScore) + " : " + String.valueOf(aiScore));
-
-        block = 0; // новая игра
-
-        if (aiPlayer == 'X') {
-            Random random = new Random();
-            int index = random.nextInt(GRID_SIZE*GRID_SIZE);
-
-            btns.get(index).setStatus(aiPlayer);
-            origBoard[index] = aiPlayer;
-
+        if( player == aiPlayer) {
             txtStatus.setText(R.string.hu_move);
-        }
-
-    }
-
-
-    int fc;
-
-    @Override
-    public void onClick(View v) {
-//        txtStatus.setText( String.valueOf(v.getTag()));
-
-        if (((TicTacToeButton) v).getStatus() == (char) 0 && block == 0) {
-            block = 1;
-
-
-            // ((Button) v).setText(String.valueOf(huPlayer));
-            ((TicTacToeButton) v).setStatus(huPlayer);
-            // human
-
-            // Нажата кнопка 'huPlayer'
-            origBoard[(int) v.getTag()] = huPlayer;
-//        char origBoard[] = {'O',1 ,'X','X',4 ,'X', 6 ,'O','O'};
-            // Проверка на конец игры
-
-
+        } else if (player == huPlayer){
             txtStatus.setText(R.string.ai_move);
-
-            Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
-                public void run() {
-                    //my_button.setBackgroundResource(R.drawable.defaultcard);
-//                    txtStatus.setText("прошло 2 сек");
-                    if (!is_end()) {
-
-                        int del_index = 10;
-
-                        List<Integer> fullSpots = fullIndexies(origBoard);
-                        if (gameType == RANDOM_GAME) {
-                            if (fullSpots.size() > 2) {
-                                Random random = new Random();
-                                if ((random.nextInt(5)) > 2) {
-                                    del_index = random.nextInt(fullSpots.size());
-                                    Log.d("MY Logs", "i = " + String.valueOf(del_index));
-                                }
-                            }
-                        }
-
-
-                        fc = 0;
-                        Move bestSpot = minimax(origBoard, aiPlayer);
-
-                        // btns.get((byte) bestSpot.index).setText(String.valueOf(aiPlayer));
-                        btns.get((byte) bestSpot.index).setStatus(aiPlayer);
-                        origBoard[(byte) bestSpot.index] = aiPlayer;
-
-                        txtStatus.setText(R.string.hu_move);
-                        //txtStatus.setText( String.valueOf(fc) + ": Best move - " + String.valueOf((byte)bestSpot.index));
-
-                        if (!is_end()) {
-                            block = 0;
-
-                            if (del_index != 10) {
-                                btns.get(fullSpots.get(del_index)).setStatus((char) 0);
-                                origBoard[fullSpots.get(del_index)] = (char) (fullSpots.get(del_index).intValue());
-                            }
-                        }
-                    }
-
-                }
-            }, (animation?750:0));
-
         }
-    }
 
+    }
 
     private boolean is_end() {
         boolean rez = false;
         int win;
+        String win_state = getString(R.string.draw);
+
         if ((win = winning(origBoard, huPlayer)) != 0) {
             rez = true;
             win_state = getString(R.string.you_win);
 
             huScore++;
-            SharedPreferences.Editor ed = sPref.edit();
+            SharedPreferences.Editor ed = sp.edit();
             ed.putInt(STATE_HU_SCORE, huScore);
             ed.commit();
 
@@ -443,7 +376,7 @@ public class game extends AppCompatActivity implements View.OnClickListener {
             win_state = getString(R.string.you_lose);
 
             aiScore++;
-            SharedPreferences.Editor ed = sPref.edit();
+            SharedPreferences.Editor ed = sp.edit();
             ed.putInt(STATE_AI_SCORE, aiScore);
             ed.commit();
 
@@ -451,18 +384,14 @@ public class game extends AppCompatActivity implements View.OnClickListener {
 
         } else if (emptyIndexies(origBoard).size() == 0) {
             rez = true;
-            win_state = getString(R.string.draw);
         }
 
         if (rez) {
-            //MyDialogFragment myDialogFragment = new MyDialogFragment();
-            //myDialogFragment.show(getFragmentManager(), "dialog");
             txtStatus.setText("");
             btnReset.setVisibility(View.VISIBLE);
             txtScore.setText(win_state);
 
             changeImageHU();
-
         }
         return rez;
     }
@@ -471,7 +400,6 @@ public class game extends AppCompatActivity implements View.OnClickListener {
     public Move minimax(char[] newBoard, char player) {
         // add one to function calls
         Move rez = new Move();
-        fc++;
 
         // available spots
         List<Character> availSpots = emptyIndexies(newBoard);
@@ -492,10 +420,6 @@ public class game extends AppCompatActivity implements View.OnClickListener {
         List<Move> moves = new ArrayList<>();
 
         // loop through available spots
-        //for (int i = 0; i < availSpots.size(); i++) {
-
-        Random random = new Random();
-
         while (availSpots.size() > 0) {
             int i;
             i = random.nextInt(availSpots.size());
@@ -524,10 +448,9 @@ public class game extends AppCompatActivity implements View.OnClickListener {
 
             availSpots.remove(i);
             //////////////////////////////////////////////////////////////////////////////////////////
-            // Мое улучшение
+            // Нет сымсла оценивать оставщиеся ответвления
             if ((player == aiPlayer && move.score == 10) || (player == huPlayer && move.score == -10)) {
                 break;
-//			availSpots.clear();
             }
             //////////////////////////////////////////////////////////////////////////////////////////
         }
@@ -605,12 +528,12 @@ public class game extends AppCompatActivity implements View.OnClickListener {
         return rez;
     }
 
+    class Move {
+        public char index;
+        public int score;
+    }
 }
 
-class Move {
-    public char index;
-    public int score;
-}
 
 class ViewIdGenerator {
     private static final AtomicInteger sNextGeneratedId = new AtomicInteger(1);

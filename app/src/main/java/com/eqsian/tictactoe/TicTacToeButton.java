@@ -86,7 +86,7 @@ public class TicTacToeButton extends View {
             PathMeasure measure = new PathMeasure(path, false);
             length = measure.getLength();
 
-            float[] intervals = new float[]{length, length};
+//            float[] intervals = new float[]{length, length};
 
             ObjectAnimator animator = ObjectAnimator.ofFloat(TicTacToeButton.this, "phase", 1.0f, 0.0f);
             animator.setDuration(500);
@@ -111,7 +111,6 @@ public class TicTacToeButton extends View {
 
     //is called by animtor object
     public void setPhase(float phase) {
-        // Log.d("pathview","setPhase called with:" + String.valueOf(phase));
         paint.setPathEffect(new ComposePathEffect(new DiscretePathEffect(2, 1), createPathEffect(length, phase, 0.0f)));
         invalidate();//will calll onDraw
     }

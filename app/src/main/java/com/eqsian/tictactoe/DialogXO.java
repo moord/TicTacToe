@@ -16,10 +16,8 @@ import android.widget.Button;
  */
 
 public class DialogXO extends DialogFragment implements OnClickListener {
- 
-  final String LOG_TAG = "myLogs";
 
-  private int gameType;
+//  private int gameType;
 
   public static DialogXO newInstance(int gameType) {
     
@@ -31,21 +29,21 @@ public class DialogXO extends DialogFragment implements OnClickListener {
   }
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
       Bundle savedInstanceState) {
-   // getDialog().setTitle("Title!");
+
     getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
+
     View v = inflater.inflate(R.layout.dialog_xo, null);
     v.findViewById(R.id.btnX).setOnClickListener(this);
     v.findViewById(R.id.btnO).setOnClickListener(this);
     // Get back arguments
-    gameType = getArguments().getInt("gameType", game.CLASSIC_GAME);
+//    gameType = getArguments().getInt("gameType", game.CLASSIC_GAME);
 
     return v;
   }
  
   public void onClick(View v) {
-   // Log.d(LOG_TAG, "Dialog 1: " + ((Button) v).getText());
     Intent intent = new Intent(getActivity(), game.class);
-    switch(((Button) v).getId()){
+    switch(v.getId()){
       case R.id.btnX:
         intent.putExtra("huPlayer",'X');
         intent.putExtra("aiPlayer",'O');
@@ -53,9 +51,8 @@ public class DialogXO extends DialogFragment implements OnClickListener {
       case R.id.btnO:
         intent.putExtra("huPlayer",'O');
         intent.putExtra("aiPlayer",'X');
-        break;
     }
-    intent.putExtra("gameType", gameType);
+    intent.putExtra("gameType", getArguments().getInt("gameType", game.CLASSIC_GAME));
     startActivity(intent);
     dismiss();
   }
@@ -70,33 +67,3 @@ public class DialogXO extends DialogFragment implements OnClickListener {
    // Log.d(LOG_TAG, "Dialog 1: onCancel");
   }
 }
-/*
-public class MyDialogFragment extends DialogFragment {
-    @NonNull
-    @Override
-    public Dialog onCreateDialog(Bundle savedInstanceState) {
-        String title = ((game)getActivity()).win_state;
-        String button1String = "Новая игра";
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle(title);  // заголовок
-        builder.setCancelable(false);
-        builder.setPositiveButton(button1String, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                ((game)getActivity()).reset_game();
-                dismiss();
-            }
-        });
-
-        return builder.create();
-    }
-    @Override
-    public void onStart() {
-        super.onStart();
-        if (this.getDialog() != null) {
-            getDialog().setCanceledOnTouchOutside(false);
-        }
-    }
-}
-
-  */

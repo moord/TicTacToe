@@ -29,13 +29,6 @@ public class CrossLine extends View {
         }
     }
 
-    @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh) { //вызывается при изменении размера view
-/*
-        mWidth = w; //запоминаем ширину view
-        mHeight = h; //запоминаем высоту view
-*/
-    }
 
     @Override
     public void onDraw(Canvas c) {
