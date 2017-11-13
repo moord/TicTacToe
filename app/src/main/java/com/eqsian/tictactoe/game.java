@@ -10,6 +10,8 @@ import android.support.constraint.ConstraintLayout;
 import android.support.constraint.ConstraintSet;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -43,13 +45,13 @@ public class game extends AppCompatActivity implements View.OnClickListener {
     TextView txtScore;
     Button btnReset;
     List<TicTacToeButton> btns = new ArrayList<>();
-    ImageView imageViewHU;
+    ImageView imageViewHU, imageViewAI;
 
     CrossLine cross;
 
     SharedPreferences sp;
 
-    char origBoard[] = {0, 1, 2, 3, 4, 5, 6, 7, 8};
+    char origBoard[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8'};
 
     int block;
     int huScore, aiScore;
@@ -88,6 +90,8 @@ public class game extends AppCompatActivity implements View.OnClickListener {
         txtStatus.setText(R.string.hu_move);
 
         imageViewHU = (ImageView) findViewById(R.id.imgHU);
+        imageViewAI = (ImageView) findViewById(R.id.imgAI);
+
         changeImageHU();
 
         btnReset = (Button) findViewById(R.id.btnReset);
@@ -176,7 +180,7 @@ public class game extends AppCompatActivity implements View.OnClickListener {
 
     public void reset_game() {
         for (int i = 0; i < 9; i++) {
-            drawMove(i,(char)i);
+            drawMove(i,(char)(i+'0'));
         }
         cross.setStatus(0);
 
@@ -222,7 +226,7 @@ public class game extends AppCompatActivity implements View.OnClickListener {
                             block = 0;
 
                             if (del_index != 10) {
-                                drawMove(fullSpots.get(del_index), (char) 0); // Элемент неожиданности: случайное удаление клетки
+                                drawMove(fullSpots.get(del_index), (char)(fullSpots.get(del_index)+'0')); // Элемент неожиданности: случайное удаление клетки
                             }
                         }
                     }
@@ -238,6 +242,9 @@ public class game extends AppCompatActivity implements View.OnClickListener {
 
         // copy constraints settings from current ConstraintLayout to set
         set.clone(game_layout);
+
+        set.constrainHeight(R.id.imgHU, 10);
+        set.constrainWidth(R.id.imgHU, 10);
 
         int h_constraint[] = new int[GRID_SIZE - 1];
         int v_constraint[] = new int[GRID_SIZE - 1];
@@ -402,7 +409,7 @@ public class game extends AppCompatActivity implements View.OnClickListener {
         Move rez = new Move();
 
         // available spots
-        List<Character> availSpots = emptyIndexies(newBoard);
+        List<Integer> availSpots = emptyIndexies(newBoard);
 
         // checks for the terminal states such as win, lose, and tie and returning a value accordingly
         if (winning(newBoard, huPlayer) != 0) {
@@ -426,7 +433,8 @@ public class game extends AppCompatActivity implements View.OnClickListener {
 
             // create an object for each and store the index of that spot that was stored as a number in the object's index key
             Move move = new Move();
-            move.index = newBoard[availSpots.get(i)];
+            move.index = newBoard[availSpots.get(i)]-'0';
+
 
             // set the empty spot to the current player
             newBoard[availSpots.get(i)] = player;
@@ -441,7 +449,7 @@ public class game extends AppCompatActivity implements View.OnClickListener {
             }
 
             // reset the spot to empty
-            newBoard[availSpots.get(i)] = move.index;
+            newBoard[availSpots.get(i)] = (char)('0'+move.index);
 
             // push the object to the array
             moves.add(move);
@@ -454,7 +462,6 @@ public class game extends AppCompatActivity implements View.OnClickListener {
             }
             //////////////////////////////////////////////////////////////////////////////////////////
         }
-
         // if it is the computer's turn loop over the moves and choose the move with the highest score
         int bestMove = 0;
         if (player == aiPlayer) {
@@ -481,13 +488,13 @@ public class game extends AppCompatActivity implements View.OnClickListener {
         return moves.get(bestMove);
     }
 
-    public List<Character> emptyIndexies(char[] board) {
+    public List<Integer> emptyIndexies(char[] board) {
 
-        List<Character> rez = new ArrayList<>();
+        List<Integer> rez = new ArrayList<>();
 
         for (int i = 0; i < 9; i++) {
             if (board[i] != 'O' && board[i] != 'X') {
-                rez.add(board[i]);
+                rez.add(i);
             }
         }
         return rez;
@@ -529,7 +536,7 @@ public class game extends AppCompatActivity implements View.OnClickListener {
     }
 
     class Move {
-        public char index;
+        public int index;
         public int score;
     }
 }
